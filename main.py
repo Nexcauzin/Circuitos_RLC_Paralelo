@@ -136,7 +136,8 @@ circuito_5_ohm = RLC(5) # É crítico
 circuito_10_ohm = RLC(10) # Subamortecido
 circuito_100_ohm = RLC(100) # Subamortecido
 
-print(circuito_100_ohm.dv_0)
-print(circuito_100_ohm.calcular_A1_A2())
+# ALTERE AQUI PARA VISUALIZAR OS GRÁFICOS
+circuito_1_5_ohm.plotar_v_t()
+#circuito_1_5_ohm.plotar_i_r()
 
 
