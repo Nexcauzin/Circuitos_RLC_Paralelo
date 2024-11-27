@@ -1,6 +1,7 @@
 import numpy as np
 from scipy.optimize import fsolve
 import matplotlib.pyplot as plt
+import math
 
 # Classe RLC para gerenciar melhor os cálculos
 class RLC:
@@ -54,21 +55,6 @@ class RLC:
         eq2 = self.s1*A1 + self.s2*A2 - self.dv_0
         return [eq1, eq2]
 
-    def sistema_amortecimento_critico(self, vars):
-        """
-        Resolve o sistema:
-        Eq1:
-        0 = (A1 + A2*t)*e^(-omega*t) - v(0)
-        0 = A1 - v(0)
-
-        Eq2:
-        0 = s1*A1*e^s1*t + s2*A2*e^s2*t - dv(0)/dt
-        0 = s1*A1 + s2*A2 - dv(0)/dt
-
-        :param vars: Variáveis a serem descobertas
-        :return: Equações para o fsolve do scipy.optimize
-        """
-
     def funcao_amortecimento_supercritico(self, tempo):
         """
         Função v(t) = A1*e^s1*t + A2*e^s2*t
@@ -89,20 +75,34 @@ class RLC:
         params = self.calcular_A1_A2()
         return (params[0] + params[1]*tempo)*np.exp(-self.omega*tempo)
 
+    def funcao_subamortecimento(self, tempo):
+        """
+        Função v(t) = e^(-alpha*t)*(A1*cos(wd*t) + A2*sen(wd*t))
 
-    #def sistema_subamortecido(self):
+        :param tempo: Variável do tempo
+        :return: O valor da função para t
+        """
+
+        omega_d = np.sqrt(pow(self.omega, 2) - pow(self.alpha, 2))
+        params = self.calcular_A1_A2()
+        return np.exp(-self.alpha*tempo)*(params[0]*np.cos(omega_d*tempo) + params[1]*np.sin(omega_d*tempo))
 
     def calcular_A1_A2(self):
         if self.alpha > self.omega:
             return fsolve(self.sistema_amortecimento_supercritico, self.ESTIMATIVA_INICIAL)
         if self.alpha == self.omega:
             return [self.v_0, self.dv_0 + (self.omega*self.v_0)]
+        if self.alpha < self.omega:
+            omega_d = np.sqrt(pow(self.omega, 2) - pow(self.alpha, 2))
+            return [self.v_0, (self.dv_0 + (self.alpha*self.v_0))/omega_d]
 
     def calcula_v_t(self):
         if self.alpha > self.omega:
             return self.funcao_amortecimento_supercritico(self.t)
         if self.alpha == self.omega:
             return self.funcao_amortecimento_critico(self.t)
+        if self.alpha < self.omega:
+            return self.funcao_subamortecimento(self.t)
 
     def plotar_v_t(self):
         # Calcula v_t
@@ -131,12 +131,12 @@ class RLC:
         plt.show()
 
 
-
 circuito_1_5_ohm = RLC(1.5) # É supercrítico
 circuito_5_ohm = RLC(5) # É crítico
 circuito_10_ohm = RLC(10) # Subamortecido
 circuito_100_ohm = RLC(100) # Subamortecido
 
-print(circuito_5_ohm.dv_0)
-print(circuito_5_ohm.calcular_A1_A2())
-circuito_5_ohm.plotar_i_r()
+print(circuito_100_ohm.dv_0)
+print(circuito_100_ohm.calcular_A1_A2())
+
+
