@@ -1,5 +1,6 @@
 import numpy as np
 from scipy.optimize import fsolve
+import matplotlib.pyplot as plt
 
 # Classe RLC para gerenciar melhor os cálculos
 class RLC:
@@ -52,14 +53,40 @@ class RLC:
         eq2 = self.s1*A1 + self.s2*A2 - self.dv_0
         return [eq1, eq2]
 
-    def calcular_A1_A2(self):
-        if self.alpha > self.omega:
-            return fsolve(self.sistema_amortecimento_supercritico, self.ESTIMATIVA_INICIAL)
+    def funcao_amortecimento_supercritico(self, t, params):
+        """
+        Função v(t) = A1*e^s1*t + A2*e^s2*t
+
+        :param t: Variável de tempo
+        :return:  O valor da função para t
+        """
+        return params[0]*np.exp(self.s1*t) + params[1]*np.exp(self.s2*t)
 
     #def sistema_amortecimento_critico(self):
 
 
     #def sistema_subamortecido(self):
+
+    def calcular_A1_A2(self):
+        if self.alpha > self.omega:
+            return fsolve(self.sistema_amortecimento_supercritico, self.ESTIMATIVA_INICIAL)
+
+    def plotar_v_t(self):
+        # Vetor do eixo de tempo
+        t = np.linspace(0, 15, 9000)
+
+        # Cálculo da função
+        v_t = self.funcao_amortecimento_supercritico(t, self.calcular_A1_A2())
+
+        # Customização do gráfico
+        plt.plot(t, v_t, label="v(t)", color = "red")
+        plt.title("Resposta v(t)")
+        plt.xlabel("t")
+        plt.ylabel("v(t)")
+        plt.legend()
+        plt.grid(True)
+        plt.show()
+
 
 
 circuito_1_5_ohm = RLC(1.5) # É supercrítico
@@ -67,4 +94,7 @@ circuito_5_ohm = RLC(5) # É crítico
 circuito_10_ohm = RLC(10) # Subamortecido
 circuito_100_ohm = RLC(100) # Subamortecido
 
+print(circuito_1_5_ohm.dv_0)
+print(circuito_1_5_ohm.alpha)
+print(circuito_1_5_ohm.omega)
 print(circuito_1_5_ohm.calcular_A1_A2())
